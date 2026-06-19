@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - RAZA CASH</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body class="login-body">
+
+    <div class="lang-switcher-login">
+        <select id="lang-select">
+            <option value="en">English</option>
+            <option value="bn">বাংলা</option>
+            <option value="hi">हिंदी</option>
+        </select>
+    </div>
+
+    <div class="login-container">
+        <div class="form-container" id="login-form">
+            <h1 class="login-title">RAZA <span class="accent-text">CASH</span></h1>
+            <h2 data-lang-key="loginTitle">Welcome Back!</h2>
+            <form id="login-form-inner">
+                <div class="form-group">
+                    <label for="login-phone" data-lang-key="phone">Phone Number</label>
+                    <input type="tel" id="login-phone" placeholder="+8801..." required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password" data-lang-key="password">Password</label>
+                    <input type="password" id="login-password" required>
+                </div>
+                <button type="submit" class="btn btn-primary" data-lang-key="login">Login</button>
+                <p class="form-switcher" data-lang-key="noAccount">
+                    Don't have an account? <a href="#" id="show-register" data-lang-key="registerNow">Register now</a>
+                </p>
+                <p class="form-switcher">
+                    <a href="#" id="show-forgot" data-lang-key="forgotPassword">Forgot Password?</a>
+                </p>
+            </form>
+        </div>
+
+        <div class="form-container" id="register-form" style="display: none;">
+            <h1 class="login-title">RAZA <span class="accent-text">CASH</span></h1>
+            <h2 data-lang-key="createAccount">Create Account</h2>
+            <form id="register-form-inner">
+                <div class="form-group">
+                    <label for="reg-name" data-lang-key="fullName">Full Name</label>
+                    <input type="text" id="reg-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg-phone" data-lang-key="phone">Phone Number</label>
+                    <input type="tel" id="reg-phone" placeholder="+8801..." required>
+                </div>
+                <div class="form-group">
+                    <label for="reg-password" data-lang-key="password">Password</label>
+                    <input type="password" id="reg-password" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg-referral" data-lang-key="referralCode">Referral Code (Optional)</label>
+                    <input type="text" id="reg-referral">
+                </div>
+                <button type="submit" class="btn btn-primary" data-lang-key="register">Register</button>
+                <p class="form-switcher" data-lang-key="haveAccount">
+                    Already have an account? <a href="#" id="show-login" data-lang-key="loginNow">Login now</a>
+                </p>
+            </form>
+        </div>
+
+        <div class="form-container" id="forgot-form" style="display: none;">
+            <h1 class="login-title">RAZA <span class="accent-text">CASH</span></h1>
+            <h2 data-lang-key="resetPassword">Reset Password</h2>
+            <form id="forgot-form-inner">
+                <div class="form-group">
+                    <label for="forgot-phone" data-lang-key="phone">Your Phone Number</label>
+                    <input type="tel" id="forgot-phone" placeholder="+8801..." required>
+                </div>
+                <div class="form-group">
+                    <label for="forgot-new-password" data-lang-key="newPassword">New Password</label>
+                    <input type="password" id="forgot-new-password" required>
+                </div>
+                <button type="submit" class="btn btn-primary" data-lang-key="reset">Reset</button>
+                <p class="form-switcher">
+                    <a href="#" id="show-login-from-forgot" data-lang-key="backToLogin">Back to Login</a>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

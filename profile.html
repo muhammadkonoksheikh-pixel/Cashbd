@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - RAZA CASH</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header simple-header">
+            <a href="index.html" class="back-icon"><i class="fas fa-arrow-left"></i></a>
+            <h1 data-lang-key="profile">Profile</h1>
+            <div class="header-right">
+                <select id="lang-select">
+                    <option value="en">English</option>
+                    <option value="bn">বাংলা</option>
+                    <option value="hi">हिंदी</option>
+                </select>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="profile-header card">
+                <i class="fas fa-user-circle profile-pic-large"></i>
+                <h2 id="profile-name">User Name</h2>
+                <p id="profile-phone">+880123456789</p>
+                <div class="balance-info">
+                    <span data-lang-key="totalBalance">Total Balance</span>
+                    <h3>৳ <span id="profile-balance">0.00</span></h3>
+                </div>
+            </div>
+
+            <div class="profile-stats-grid">
+                <div class="stat-card card">
+                    <span data-lang-key="totalDeposit">Total Deposit</span>
+                    <strong id="profile-total-deposit">৳0</strong>
+                </div>
+                <div class="stat-card card">
+                    <span data-lang-key="totalWithdraw">Total Withdraw</span>
+                    <strong id="profile-total-withdraw">৳0</strong>
+                </div>
+                <div class="stat-card card">
+                    <span data-lang-key="activePlan">Active Plan</span>
+                    <strong id="profile-active-plan">None</strong>
+                </div>
+                <div class="stat-card card">
+                    <span data-lang-key="referralBalance">Referral Balance</span>
+                    <strong id="profile-referral-balance">৳0</strong>
+                </div>
+            </div>
+
+            <div class="referral-section card">
+                <h3 data-lang-key="yourReferralCode">Your Referral Code</h3>
+                <div class="wallet-address">
+                    <strong id="referral-code"></strong>
+                    <button type="button" id="copy-referral-btn" class="btn btn-small"><i class="fas fa-copy"></i></button>
+                </div>
+                <p data-lang-key="referralInfo">Share your code to earn rewards!</p>
+            </div>
+
+            <div class="profile-menu">
+                <a href="transactions.html" class="menu-item card">
+                    <i class="fas fa-receipt icon-transaction"></i>
+                    <span data-lang-key="transactionHistory">Transaction History</span>
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+                <a href="help.html" class="menu-item card">
+                    <i class="fas fa-question-circle icon-help"></i>
+                    <span data-lang-key="helpCenter">Help Center</span>
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+                <a href="https/t.me/razacash" class="menu-item card" target="_blank">
+                    <i class="fab fa-telegram-plane icon-telegram"></i>
+                    <span data-lang-key="joinTelegram">Join Telegram</span>
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+
+            <button id="logout-btn" class="btn btn-danger" data-lang-key="logout">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+
+        <nav class="bottom-nav">
+            <a href="index.html" class="nav-item">
+                <i class="fas fa-home"></i>
+                <span data-lang-key="home">Home</span>
+            </a>
+            <a href="packages.html" class="nav-item">
+                <i class="fas fa-box"></i>
+                <span data-lang-key="plans">Plans</span>
+            </a>
+            <a href="tasks.html" class="nav-item">
+                <i class="fas fa-tasks"></i>
+                <span data-lang-key="task">Task</span>
+            </a>
+            <a href="profile.html" class="nav-item active">
+                <i class="fas fa-user"></i>
+                <span data-lang-key="profile">Profile</span>
+            </a>
+        </nav>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Packages - RAZA CASH</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header simple-header">
+            <a href="index.html" class="back-icon"><i class="fas fa-arrow-left"></i></a>
+            <h1 data-lang-key="packages">Packages</h1>
+            <a href="profile.html" class="header-icon"><i class="fas fa-user-circle"></i></a>
+        </header>
+
+        <div class="main-content">
+            <div class="balance-card-small card">
+                <span data-lang-key="availableBalance">Available Balance</span>
+                <h3>৳ <span id="user-balance">0.00</span></h3>
+            </div>
+
+            <div id="active-plan-container" class="card" style="display: none;">
+                <h3 data-lang-key="yourActivePlan">Your Active Plan</h3>
+                <p id="active-plan-details"></p>
+                <small data-lang-key="onePlanOnly">You can only have one active plan.</small>
+            </div>
+
+            <div class="packages-grid" id="packages-list">
+                </div>
+        </div>
+
+        <nav class="bottom-nav">
+            <a href="index.html" class="nav-item">
+                <i class="fas fa-home"></i>
+                <span data-lang-key="home">Home</span>
+            </a>
+            <a href="packages.html" class="nav-item active">
+                <i class="fas fa-box"></i>
+                <span data-lang-key="plans">Plans</span>
+            </a>
+            <a href="tasks.html" class="nav-item">
+                <i class="fas fa-tasks"></i>
+                <span data-lang-key="task">Task</span>
+            </a>
+            <a href="profile.html" class="nav-item">
+                <i class="fas fa-user"></i>
+                <span data-lang-key="profile">Profile</span>
+            </a>
+        </nav>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

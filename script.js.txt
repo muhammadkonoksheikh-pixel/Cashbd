@@ -1,0 +1,850 @@
+// (This is a long file, as it contains all app logic)
+document.addEventListener('DOMContentLoaded', () => {
+    
+    // --- DATABASE INITIALIZATION ---
+    // Initializes localStorage with default data if it doesn't exist
+    function initDB() {
+        const defaults = {
+            users: [
+                {id:1, name:"Rakib", phone:"+8801765432109", password: "123", balance:500, plan: 1, referralBalance: 50, referralCode:"RAKIB123", referredBy: null, status: "active", lastLogin: null, ip: null, planEndDate: "2025-12-31T23:59:59"},
+                {id:2, name:"Nusrat", phone:"+8801555555555", password: "123", balance:3000, plan: 3, referralBalance: 100, referralCode:"NUS123", referredBy: "RAKIB123", status: "active", lastLogin: null, ip: null, planEndDate: "2026-01-31T23:59:59"},
+            ],
+            deposits: [
+                {id:1, userPhone:"+8801765432109", amount:500, method:"Bkash", txnId: "ABC1234", status:"Pending", date: "2025-11-01T10:00:00"},
+                {id:2, userPhone:"+8801555555555", amount:1000, method:"USDT", txnId: "XYZ5678", status:"Approved", date: "2025-11-02T11:00:00"},
+            ],
+            withdraws: [
+                {id:1, userPhone:"+8801555555555", amount:300, method:"USDT", wallet: "T...", status:"Approved", date: "2025-11-01T15:00:00"},
+                {id:2, userPhone:"+8801765432109", amount:500, method:"Bkash", wallet: "017...", status:"Pending", date: "2025-11-02T12:00:00"},
+            ],
+            plans: [
+                {id:1, name:"Plan 1", price:500, reward:50, validity:60},
+                {id:2, name:"Plan 2", price:1000, reward:100, validity:60},
+                {id:3, name:"Plan 3", price:2000, reward:200, validity:90},
+                {id:4, name:"Plan 4", price:3000, reward:300, validity:120},
+                {id:5, name:"Plan 5", price:5000, reward:500, validity:180},
+                {id:6, name:"Plan 6", price:10000, reward:1000, validity:365}
+            ],
+            tasks: [
+                { id: 1, name: "Daily Ad View", rewardSource: "plan", isCompleted: false, completedDate: null }
+            ],
+            settings: {
+                minDeposit: 200,
+                minDepositUSD: 2,
+                withdrawRate: 120, // 1 USD = 120 BDT
+                dailyWithdrawLimit: 10000,
+                referralDepositBonus: 0.10, // 10%
+                referralPlanBonus: 50, // ৳50
+                allTasksBonus: 20, // ৳20
+                announcement: "Welcome to RAZA CASH! Invest today and earn daily. Join our Telegram for updates.",
+                paymentMethods: [
+                    { name: "Bkash", address: "01700000000 (Personal)"},
+                    { name: "Nagad", address: "01800000000 (Personal)"},
+                    { name: "USDT (TRC20)", address: "TXYZ...ADDRESS...123"},
+                    { name: "BTC", address: "bc1q...address...456"},
+                    { name: "Binance", address: "user@binance.com"},
+                    { name: "Payeer", address: "P12345678"},
+                ]
+            }
+        };
+
+        // Set defaults if local storage is empty
+        for (const key in defaults) {
+            if (!localStorage.getItem(key)) {
+                localStorage.setItem(key, JSON.stringify(defaults[key]));
+            }
+        }
+    }
+    
+    // --- MULTI-LANGUAGE ENGINE ---
+    const translations = {
+        en: {
+            "home": "Home", "plans": "Plans", "task": "Task", "profile": "Profile", "login": "Login", "register": "Register",
+            "loginTitle": "Welcome Back!", "phone": "Phone Number", "password": "Password", "noAccount": "Don't have an account?",
+            "registerNow": "Register now", "forgotPassword": "Forgot Password?", "createAccount": "Create Account", "fullName": "Full Name",
+            "referralCode": "Referral Code (Optional)", "haveAccount": "Already have an account?", "loginNow": "Login now",
+            "resetPassword": "Reset Password", "newPassword": "New Password", "reset": "Reset", "backToLogin": "Back to Login",
+            "totalBalance": "Total Balance", "deposit": "Deposit", "withdraw": "Withdraw", "packages": "Packages",
+            "myTask": "My Task", "transaction": "Transaction", "help": "Help", "telegram": "Telegram", "contactUs": "Contact Us",
+            "ourPartners": "Our Partners", "paymentMethod": "Payment Method", "amount": "Amount", "minDeposit": "Minimum Deposit: ৳200 or $2",
+            "paymentInstructions": "Payment Instructions", "sendTo": "Please send", "transactionId": "Transaction ID / TxHash",
+            "submitRequest": "Submit Request", "depositHistory": "Deposit History", "availableBalance": "Available Balance",
+            "withdrawRate": "Withdraw Rate: 1 USD = 120 BDT", "withdrawMethod": "Withdraw Method", "walletAddress": "Wallet Number / Address",
+            "dailyLimit": "Daily Limit: ৳10000", "withdrawHistory": "Withdrawal History", "yourActivePlan": "Your Active Plan",
+            "onePlanOnly": "You can only have one active plan.", "buyNow": "Buy Now", "planDetails": "Plan Details", "dailyReward": "Daily Reward",
+            "validity": "Validity", "days": "Days", "noPlanMsg": "You must purchase a plan to unlock daily tasks.", "buyPlan": "Buy a Plan",
+            "todayEarnings": "Today's Earnings", "tasksCompleted": "Tasks Completed", "allTasksBonus": "Bonus for all tasks awarded!",
+            "complete": "Complete", "completed": "Completed", "specialTasks": "Special Tasks", "inviteFriends": "Invite Friends",
+            "inviteBonus": "Get 10% from their deposit + ৳50 bonus!", "invite": "Invite", "allTransactions": "All Transactions",
+            "noTransactions": "No transactions found.", "totalDeposit": "Total Deposit", "totalWithdraw": "Total Withdraw",
+            "activePlan": "Active Plan", "referralBalance": "Referral Balance", "yourReferralCode": "Your Referral Code",
+            "referralInfo": "Share your code to earn rewards!", "transactionHistory": "Transaction History", "helpCenter": "Help Center",
+            "joinTelegram": "Join Telegram", "logout": "Logout", "faq": "Frequently Asked Questions",
+            "q1": "Q: How to deposit?", "a1": "A: Go to the Deposit page, select a method, send the amount to the given address, and submit the form with your transaction ID.",
+            "q2": "Q: How long does withdrawal take?", "a2": "A: Withdrawals are processed by the admin. It can take up to 24 hours.",
+            "q3": "Q: How does the referral system work?", "a3": "A: Share your referral code. When a user registers with your code and buys a plan, you both get ৳50. You also get 10% of every deposit they make."
+        },
+        bn: {
+            "home": "হোম", "plans": "প্ল্যান", "task": "টাস্ক", "profile": "প্রোফাইল", "login": "লগইন", "register": "নিবন্ধন",
+            "loginTitle": "আবার স্বাগতম!", "phone": "ফোন নম্বর", "password": "পাসওয়ার্ড", "noAccount": "কোনো একাউন্ট নেই?",
+            "registerNow": "নিবন্ধন করুন", "forgotPassword": "পাসওয়ার্ড ভুলে গেছেন?", "createAccount": "একাউন্ট তৈরি করুন", "fullName": "পুরো নাম",
+            "referralCode": "রেফারেল কোড (ঐচ্ছিক)", "haveAccount": "ইতিমধ্যেই একাউন্ট আছে?", "loginNow": "লগইন করুন",
+            "resetPassword": "পাসওয়ার্ড রিসেট", "newPassword": "নতুন পাসওয়ার্ড", "reset": "রিসেট", "backToLogin": "লগইনে ফিরে যান",
+            "totalBalance": "মোট ব্যালেন্স", "deposit": "জমা", "withdraw": "উত্তোলন", "packages": "প্যাকেজ",
+            "myTask": "আমার কাজ", "transaction": "লেনদেন", "help": "সহায়তা", "telegram": "টেলিগ্রাম", "contactUs": "যোগাযোগ",
+            "ourPartners": "আমাদের পার্টনার", "paymentMethod": "পেমেন্ট পদ্ধতি", "amount": "টাকার পরিমাণ", "minDeposit": "ন্যূনতম জমা: ৳২০০ বা $২",
+            "paymentInstructions": "পেমেন্ট নির্দেশনা", "sendTo": "অনুগ্রহ করে পাঠান", "transactionId": "লেনদেন আইডি / TxHash",
+            "submitRequest": "অনুরোধ জমা দিন", "depositHistory": "জমার ইতিহাস", "availableBalance": "বর্তমান ব্যালেন্স",
+            "withdrawRate": "উত্তোলন রেট: ১ USD = ১২০ BDT", "withdrawMethod": "উত্তোলন পদ্ধতি", "walletAddress": "ওয়ালেট নম্বর / ঠিকানা",
+            "dailyLimit": "দৈনিক সীমা: ৳১০০০০", "withdrawHistory": "উত্তোলনের ইতিহাস", "yourActivePlan": "আপনার সক্রিয় প্ল্যান",
+            "onePlanOnly": "আপনি শুধুমাত্র একটি সক্রিয় প্ল্যান রাখতে পারেন।", "buyNow": "এখনই কিনুন", "planDetails": "প্ল্যানের বিবরণ", "dailyReward": "দৈনিক পুরস্কার",
+            "validity": "মেয়াদ", "days": "দিন", "noPlanMsg": "দৈনিক কাজ আনলক করতে আপনাকে অবশ্যই একটি প্ল্যান কিনতে হবে।", "buyPlan": "প্ল্যান কিনুন",
+            "todayEarnings": "আজকের আয়", "tasksCompleted": "কাজ সম্পন্ন", "allTasksBonus": "সব কাজ করার জন্য বোনাস দেওয়া হয়েছে!",
+            "complete": "সম্পন্ন", "completed": "সম্পন্ন", "specialTasks": "বিশেষ কাজ", "inviteFriends": "বন্ধুদের আমন্ত্রণ",
+            "inviteBonus": "তাদের জমা থেকে ১০% + ৳৫০ বোনাস পান!", "invite": "আমন্ত্রণ", "allTransactions": "সকল লেনদেন",
+            "noTransactions": "কোনো লেনদেন পাওয়া যায়নি।", "totalDeposit": "মোট জমা", "totalWithdraw": "মোট উত্তোলন",
+            "activePlan": "সক্রিয় প্ল্যান", "referralBalance": "রেফারেল ব্যালেন্স", "yourReferralCode": "আপনার রেফারেল কোড",
+            "referralInfo": "পুরস্কার জিততে আপনার কোড শেয়ার করুন!", "transactionHistory": "লেনদেনের ইতিহাস", "helpCenter": "সহায়তা কেন্দ্র",
+            "joinTelegram": "টেলিগ্রামে যোগ দিন", "logout": "লগআউট", "faq": "সাধারণ প্রশ্নাবলী",
+            "q1": "প্রশ্ন: কিভাবে জমা করবেন?", "a1": "উত্তর: ডিপোজিট পৃষ্ঠায় যান, একটি পদ্ধতি নির্বাচন করুন, প্রদত্ত ঠিকানায় টাকা পাঠান এবং আপনার লেনদেন আইডি সহ ফর্মটি জমা দিন।",
+            "q2": "প্রশ্ন: টাকা তুলতে কতক্ষণ লাগে?", "a2": "উত্তর: অ্যাডমিন দ্বারা উত্তোলন প্রক্রিয়া করা হয়। এতে ২৪ ঘন্টা পর্যন্ত সময় লাগতে পারে।",
+            "q3": "প্রশ্ন: রেফারেল সিস্টেম কিভাবে কাজ করে?", "a3": "উত্তর: আপনার রেফারেল কোড শেয়ার করুন। যখন কোনো ব্যবহারকারী আপনার কোড দিয়ে নিবন্ধন করে এবং একটি প্ল্যান কিনে, আপনারা দুজনেই ৳৫০ পাবেন। আপনি তাদের প্রতিটি জমার উপর ১০% পাবেন।"
+        },
+        hi: {
+            "home": "होम", "plans": "प्लान", "task": "टास्क", "profile": "प्रोफ़ाइल", "login": "लॉग इन करें", "register": "रजिस्टर करें",
+            "loginTitle": "वापस स्वागत है!", "phone": "फ़ोन नंबर", "password": "पासवर्ड", "noAccount": "अकाउंट नहीं है?",
+            "registerNow": "अभी रजिस्टर करें", "forgotPassword": "पासवर्ड भूल गए?", "createAccount": "अकाउंट बनाएं", "fullName": "पूरा नाम",
+            "referralCode": "रेफरल कोड (वैकल्पिक)", "haveAccount": "पहले से ही अकाउंट है?", "loginNow": "अभी लॉग इन करें",
+            "resetPassword": "पासवर्ड रीसेट करें", "newPassword": "नया पासवर्ड", "reset": "रीसेट", "backToLogin": "लॉगिन पर वापस जाएं",
+            "totalBalance": "कुल बैलेंस", "deposit": "जमा", "withdraw": "निकासी", "packages": "पैकेज",
+            "myTask": "मेरा टास्क", "transaction": "लेन-देन", "help": "सहायता", "telegram": "टेलीग्राम", "contactUs": "हमसे संपर्क करें",
+            "ourPartners": "हमारे पार्टनर्स", "paymentMethod": "भुगतान विधि", "amount": "राशि", "minDeposit": "न्यूनतम जमा: ৳200 या $2",
+            "paymentInstructions": "भुगतान निर्देश", "sendTo": "कृपया भेजें", "transactionId": "लेन-देन आईडी / TxHash",
+            "submitRequest": "अनुरोध सबमिट करें", "depositHistory": "जमा इतिहास", "availableBalance": "उपलब्ध बैलेंस",
+            "withdrawRate": "निकासी दर: 1 USD = 120 BDT", "withdrawMethod": "निकासी विधि", "walletAddress": "वॉलेट नंबर / पता",
+            "dailyLimit": "दैनिक सीमा: ৳10000", "withdrawHistory": "निकासी इतिहास", "yourActivePlan": "आपका सक्रिय प्लान",
+            "onePlanOnly": "आप केवल एक सक्रिय प्लान रख सकते हैं।", "buyNow": "अभी खरीदें", "planDetails": "प्लान विवरण", "dailyReward": "दैनिक इनाम",
+            "validity": "वैधता", "days": "दिन", "noPlanMsg": "दैनिक कार्यों को अनलॉक करने के लिए आपको एक प्लान खरीदना होगा।", "buyPlan": "प्लान खरीदें",
+            "todayEarnings": "आज की कमाई", "tasksCompleted": "टास्क पूरे हुए", "allTasksBonus": "सभी कार्यों के लिए बोनस दिया गया!",
+            "complete": "पूरा करें", "completed": "पूरा हुआ", "specialTasks": "विशेष टास्क", "inviteFriends": "दोस्तों को आमंत्रित करें",
+            "inviteBonus": "उनकी जमा राशि से 10% + ৳50 बोनस पाएं!", "invite": "आमंत्रित करें", "allTransactions": "सभी लेन-देन",
+            "noTransactions": "कोई लेन-देन नहीं मिला।", "totalDeposit": "कुल जमा", "totalWithdraw": "कुल निकासी",
+            "activePlan": "सक्रिय प्लान", "referralBalance": "रेफरल बैलेंस", "yourReferralCode": "आपका रेफरल कोड",
+            "referralInfo": "इनाम पाने के लिए अपना कोड शेयर करें!", "transactionHistory": "लेन-देन इतिहास", "helpCenter": "सहायता केंद्र",
+            "joinTelegram": "टेलीग्राम से जुड़ें", "logout": "लॉग आउट", "faq": "अक्सर पूछे जाने वाले प्रश्न",
+            "q1": "प्रश्न: जमा कैसे करें?", "a1": "उत्तर: डिपॉजिट पेज पर जाएं, एक विधि चुनें, दिए गए पते पर राशि भेजें, और अपनी ट्रांजैक्शन आईडी के साथ फॉर्म सबमिट करें।",
+            "q2": "प्रश्न: निकासी में कितना समय लगता है?", "a2": "उत्तर: निकासी व्यवस्थापक द्वारा संसाधित की जाती है। इसमें 24 घंटे तक लग सकते हैं।",
+            "q3": "प्रश्न: रेफरल सिस्टम कैसे काम करता है?", "a3": "उत्तर: अपना रेफरल कोड साझा करें। जब कोई उपयोगकर्ता आपके कोड के साथ पंजीकरण करता है और एक प्लान खरीदता है, तो आप दोनों को ৳50 मिलते हैं। आपको उनकी हर जमा राशि का 10% भी मिलता है।"
+        }
+    };
+
+    function setLanguage(lang) {
+        localStorage.setItem('lang', lang);
+        document.documentElement.lang = lang;
+        document.querySelectorAll('[data-lang-key]').forEach(el => {
+            const key = el.getAttribute('data-lang-key');
+            if (translations[lang] && translations[lang][key]) {
+                el.innerText = translations[lang][key];
+            }
+        });
+        
+        // Update placeholders
+        const placeholders = {
+            en: { "phone": "+8801...", "password": "Password", "transactionId": "Enter your transaction ID", "walletAddress": "e.g., 017... or T...", "withdraw-password": "Enter your login password" },
+            bn: { "phone": "+৮৮০১...", "password": "পাসওয়ার্ড", "transactionId": "আপনার লেনদেন আইডি লিখুন", "walletAddress": "যেমন, ০১৭... বা T...", "withdraw-password": "আপনার লগইন পাসওয়ার্ড দিন" },
+            hi: { "phone": "+८८०१...", "password": "पासवर्ड", "transactionId": "अपनी लेनदेन आईडी दर्ज करें", "walletAddress": "जैसे, 017... या T...", "withdraw-password": "अपना लॉगिन पासवर्ड दर्ज करें" }
+        };
+        
+        document.querySelectorAll('input[placeholder]').forEach(input => {
+            const key = input.getAttribute('data-lang-key');
+            if (key && placeholders[lang] && placeholders[lang][key]) {
+                input.placeholder = placeholders[lang][key];
+            }
+        });
+
+        // Update settings-dependent text
+        loadSettingsText(lang);
+    }
+    
+    function loadSettingsText(lang) {
+        const settings = JSON.parse(localStorage.getItem('settings'));
+        if (!settings) return;
+
+        const minDepositText = lang === 'bn' ? `ন্যূনতম জমা: ৳${settings.minDeposit} বা $${settings.minDepositUSD}` :
+                               lang === 'hi' ? `न्यूनतम जमा: ৳${settings.minDeposit} या $${settings.minDepositUSD}` :
+                               `Minimum Deposit: ৳${settings.minDeposit} or $${settings.minDepositUSD}`;
+        const elMinDeposit = document.querySelector('[data-lang-key="minDeposit"]');
+        if (elMinDeposit) elMinDeposit.innerText = minDepositText;
+
+        const withdrawRateText = lang === 'bn' ? `উত্তোলন রেট: ১ USD = ${settings.withdrawRate} BDT` :
+                                 lang === 'hi' ? `निकासी दर: 1 USD = ${settings.withdrawRate} BDT` :
+                                 `Withdraw Rate: 1 USD = ${settings.withdrawRate} BDT`;
+        const elWithdrawRate = document.querySelector('[data-lang-key="withdrawRate"]');
+        if (elWithdrawRate) elWithdrawRate.innerText = withdrawRateText;
+        
+        const dailyLimitText = lang === 'bn' ? `দৈনিক সীমা: ৳${settings.dailyWithdrawLimit}` :
+                               lang === 'hi' ? `दैनिक सीमा: ৳${settings.dailyWithdrawLimit}` :
+                               `Daily Limit: ৳${settings.dailyWithdrawLimit}`;
+        const elDailyLimit = document.querySelector('#withdraw-limit-info');
+        if (elDailyLimit) elDailyLimit.innerText = dailyLimitText;
+    }
+
+    const langSelect = document.getElementById('lang-select');
+    if (langSelect) {
+        const currentLang = localStorage.getItem('lang') || 'en';
+        langSelect.value = currentLang;
+        setLanguage(currentLang);
+        langSelect.addEventListener('change', (e) => setLanguage(e.target.value));
+    }
+
+    // --- UTILITY FUNCTIONS ---
+    function getDB(key) {
+        return JSON.parse(localStorage.getItem(key)) || [];
+    }
+    function setDB(key, data) {
+        localStorage.setItem(key, JSON.stringify(data));
+    }
+    function getCurrentUser() {
+        const phone = localStorage.getItem('currentUser');
+        if (!phone) return null;
+        const users = getDB('users');
+        return users.find(u => u.phone === phone);
+    }
+    function saveCurrentUser(user) {
+        const users = getDB('users');
+        const index = users.findIndex(u => u.id === user.id);
+        if (index > -1) {
+            users[index] = user;
+            setDB('users', users);
+        }
+    }
+    
+    // --- AUTHENTICATION ---
+    initDB();
+    const
+        path = window.location.pathname;
+    
+    // Auth Guard
+    if (!path.endsWith('login.html') && !getCurrentUser()) {
+        window.location.href = 'login.html';
+        return;
+    }
+    if (path.endsWith('login.html') && getCurrentUser()) {
+        window.location.href = 'index.html';
+        return;
+    }
+    
+    const user = getCurrentUser();
+    
+    // Check for banned user
+    if (user && user.status === 'banned') {
+        alert("Your account has been suspended. Please contact support.");
+        localStorage.removeItem('currentUser');
+        window.location.href = 'login.html';
+        return;
+    }
+
+    // --- Login Page Logic ---
+    if (path.endsWith('login.html')) {
+        const loginForm = document.getElementById('login-form-inner');
+        const registerForm = document.getElementById('register-form-inner');
+        const forgotForm = document.getElementById('forgot-form-inner');
+
+        const showRegisterBtn = document.getElementById('show-register');
+        const showLoginBtn = document.getElementById('show-login');
+        const showForgotBtn = document.getElementById('show-forgot');
+        const showLoginFromForgotBtn = document.getElementById('show-login-from-forgot');
+
+        const loginView = document.getElementById('login-form');
+        const registerView = document.getElementById('register-form');
+        const forgotView = document.getElementById('forgot-form');
+
+        showRegisterBtn.onclick = (e) => { e.preventDefault(); loginView.style.display = 'none'; forgotView.style.display = 'none'; registerView.style.display = 'block'; };
+        showLoginBtn.onclick = (e) => { e.preventDefault(); registerView.style.display = 'none'; forgotView.style.display = 'none'; loginView.style.display = 'block'; };
+        showForgotBtn.onclick = (e) => { e.preventDefault(); loginView.style.display = 'none'; registerView.style.display = 'none'; forgotView.style.display = 'block'; };
+        showLoginFromForgotBtn.onclick = (e) => { e.preventDefault(); forgotView.style.display = 'none'; registerView.style.display = 'none'; loginView.style.display = 'block'; };
+
+        // Login Handler
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const phone = document.getElementById('login-phone').value;
+            const password = document.getElementById('login-password').value;
+            const users = getDB('users');
+            const user = users.find(u => u.phone === phone && u.password === password);
+
+            if (user) {
+                if (user.status === 'banned') {
+                    alert('Your account is suspended.');
+                    return;
+                }
+                user.lastLogin = new Date().toISOString();
+                user.ip = "127.0.0.1"; // Mock IP
+                saveCurrentUser(user);
+                localStorage.setItem('currentUser', user.phone);
+                window.location.href = 'index.html';
+            } else {
+                alert('Invalid phone number or password.');
+            }
+        });
+
+        // Register Handler
+        registerForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('reg-name').value;
+            const phone = document.getElementById('reg-phone').value;
+            const password = document.getElementById('reg-password').value;
+            const referralCode = document.getElementById('reg-referral').value;
+            
+            const users = getDB('users');
+            if (users.find(u => u.phone === phone)) {
+                alert('This phone number is already registered.');
+                return;
+            }
+
+            let referredBy = null;
+            let referrer = null;
+            if (referralCode) {
+                referrer = users.find(u => u.referralCode === referralCode);
+                if (!referrer) {
+                    alert("Invalid referral code. Registration will continue without it.");
+                } else {
+                    referredBy = referrer.phone;
+                }
+            }
+
+            const newUser = {
+                id: users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1,
+                name: name,
+                phone: phone,
+                password: password,
+                balance: 0,
+                plan: null,
+                referralBalance: 0,
+                referralCode: name.split(' ')[0].toUpperCase() + Math.random().toString(36).substr(2, 5).toUpperCase(),
+                referredBy: referredBy,
+                status: "active",
+                lastLogin: null,
+                ip: null
+            };
+            
+            users.push(newUser);
+            setDB('users', users);
+            alert('Registration successful! Please log in.');
+            registerView.style.display = 'none';
+            loginView.style.display = 'block';
+        });
+
+        // Forgot Password Handler
+        forgotForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const phone = document.getElementById('forgot-phone').value;
+            const newPassword = document.getElementById('forgot-new-password').value;
+            const users = getDB('users');
+            const userIndex = users.findIndex(u => u.phone === phone);
+
+            if (userIndex > -1) {
+                users[userIndex].password = newPassword;
+                setDB('users', users);
+                alert('Password has been reset successfully. Please log in.');
+                forgotView.style.display = 'none';
+                loginView.style.display = 'block';
+            } else {
+                alert('No account found with this phone number.');
+            }
+        });
+    }
+
+    // --- GLOBAL USER DATA (for all authenticated pages) ---
+    if (user) {
+        // Populate common elements
+        const elements = {
+            'user-name': user.name,
+            'user-balance': user.balance.toFixed(2),
+            'profile-name': user.name,
+            'profile-phone': user.phone,
+            'profile-balance': user.balance.toFixed(2),
+            'referral-code': user.referralCode
+        };
+        for (const id in elements) {
+            const el = document.getElementById(id);
+            if (el) el.innerText = elements[id];
+        }
+        // Load settings-dependent text
+        const settings = getDB('settings');
+        const announcementEl = document.getElementById('announcement-text');
+        if (announcementEl) announcementEl.innerText = settings.announcement;
+    }
+
+    // --- Home Page (index.html) ---
+    if (path.endsWith('index.html')) {
+        // Already populated by global script
+    }
+
+    // --- Deposit Page (deposit.html) ---
+    if (path.endsWith('deposit.html')) {
+        const methodSelect = document.getElementById('deposit-method');
+        const paymentDetails = document.getElementById('payment-details');
+        const paymentMethodName = document.getElementById('payment-method-name');
+        const walletDisplay = document.getElementById('wallet-address-display');
+        const copyBtn = document.getElementById('copy-address-btn');
+        const depositForm = document.getElementById('deposit-form');
+        const historyList = document.getElementById('deposit-history-list');
+        const settings = getDB('settings');
+        
+        // Load payment methods
+        settings.paymentMethods.forEach(method => {
+            const option = document.createElement('option');
+            option.value = method.name;
+            option.innerText = method.name;
+            option.dataset.address = method.address;
+            methodSelect.appendChild(option);
+        });
+
+        // Show payment details on change
+        methodSelect.addEventListener('change', () => {
+            const selectedOption = methodSelect.options[methodSelect.selectedIndex];
+            const address = selectedOption.dataset.address;
+            if (address) {
+                paymentMethodName.innerText = selectedOption.value;
+                walletDisplay.innerText = address;
+                paymentDetails.style.display = 'block';
+            } else {
+                paymentDetails.style.display = 'none';
+            }
+        });
+        
+        // Copy address
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(walletDisplay.innerText).then(() => {
+                alert('Address copied to clipboard!');
+            });
+        });
+
+        // Handle Deposit Submit
+        depositForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const amount = parseFloat(document.getElementById('deposit-amount').value);
+            const method = methodSelect.value;
+            const txnId = document.getElementById('deposit-txn').value;
+            
+            if (amount < settings.minDeposit) {
+                alert(`Minimum deposit is ৳${settings.minDeposit}.`);
+                return;
+            }
+
+            const deposits = getDB('deposits');
+            const newDeposit = {
+                id: deposits.length > 0 ? Math.max(...deposits.map(d => d.id)) + 1 : 1,
+                userPhone: user.phone,
+                amount: amount,
+                method: method,
+                txnId: txnId,
+                status: "Pending",
+                date: new Date().toISOString()
+            };
+            
+            deposits.push(newDeposit);
+            setDB('deposits', deposits);
+            alert('Deposit request submitted! Please wait for admin approval.');
+            depositForm.reset();
+            paymentDetails.style.display = 'none';
+            loadDepositHistory();
+        });
+
+        // Load Deposit History
+        function loadDepositHistory() {
+            const deposits = getDB('deposits').filter(d => d.userPhone === user.phone).reverse();
+            historyList.innerHTML = '';
+            if (deposits.length === 0) {
+                historyList.innerHTML = '<li class="no-data">No deposit history.</li>';
+                return;
+            }
+            deposits.forEach(d => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <div class="transaction-details">
+                        <strong>${d.method}</strong>
+                        <small>${new Date(d.date).toLocaleString()}</small>
+                    </div>
+                    <div class="transaction-amount">
+                        <span class="amount-deposit">+৳${d.amount.toFixed(2)}</span>
+                        <span class="status status-${d.status.toLowerCase()}">${d.status}</span>
+                    </div>
+                `;
+                historyList.appendChild(li);
+            });
+        }
+        loadDepositHistory();
+    }
+
+    // --- Withdraw Page (withdraw.html) ---
+    if (path.endsWith('withdraw.html')) {
+        const withdrawForm = document.getElementById('withdraw-form');
+        const historyList = document.getElementById('withdraw-history-list');
+        const settings = getDB('settings');
+        
+        // Set daily limit info
+        const limitInfo = document.getElementById('withdraw-limit-info');
+        if (limitInfo) limitInfo.innerText = `Daily Limit: ৳${settings.dailyWithdrawLimit}`;
+        
+        // Handle Withdraw Submit
+        withdrawForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const amount = parseFloat(document.getElementById('withdraw-amount').value);
+            const method = document.getElementById('withdraw-method').value;
+            const wallet = document.getElementById('withdraw-wallet').value;
+            const password = document.getElementById('withdraw-password').value;
+
+            if (password !== user.password) {
+                alert("Incorrect password!");
+                return;
+            }
+            if (amount > user.balance) {
+                alert("Insufficient balance.");
+                return;
+            }
+            if (amount <= 0) {
+                alert("Invalid amount.");
+                return;
+            }
+            // Check daily limit (simple check for demo)
+            const withdraws = getDB('withdraws');
+            const todayWithdraws = withdraws.filter(w => 
+                w.userPhone === user.phone && 
+                new Date(w.date).toDateString() === new Date().toDateString() &&
+                w.status === "Approved"
+            ).reduce((sum, w) => sum + w.amount, 0);
+
+            if (todayWithdraws + amount > settings.dailyWithdrawLimit) {
+                alert(`You have exceeded your daily withdraw limit of ৳${settings.dailyWithdrawLimit}.`);
+                return;
+            }
+
+            const newWithdraw = {
+                id: withdraws.length > 0 ? Math.max(...withdraws.map(w => w.id)) + 1 : 1,
+                userPhone: user.phone,
+                amount: amount,
+                method: method,
+                wallet: wallet,
+                status: "Pending",
+                date: new Date().toISOString()
+            };
+            
+            withdraws.push(newWithdraw);
+            setDB('withdraws', withdraws);
+            
+            // Deduct from balance *immediately* (or on approve, depends on logic)
+            // For this sim, we wait for approval, so no balance change yet.
+            
+            alert('Withdraw request submitted! Please wait for admin approval.');
+            withdrawForm.reset();
+            loadWithdrawHistory();
+        });
+
+        // Load Withdraw History
+        function loadWithdrawHistory() {
+            const withdraws = getDB('withdraws').filter(w => w.userPhone === user.phone).reverse();
+            historyList.innerHTML = '';
+            if (withdraws.length === 0) {
+                historyList.innerHTML = '<li class="no-data">No withdrawal history.</li>';
+                return;
+            }
+            withdraws.forEach(w => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <div class="transaction-details">
+                        <strong>${w.method}</strong>
+                        <small>${new Date(w.date).toLocaleString()}</small>
+                    </div>
+                    <div class="transaction-amount">
+                        <span class="amount-withdraw">-৳${w.amount.toFixed(2)}</span>
+                        <span class="status status-${w.status.toLowerCase()}">${w.status}</span>
+                    </div>
+                `;
+                historyList.appendChild(li);
+            });
+        }
+        loadWithdrawHistory();
+    }
+
+    // --- Packages Page (packages.html) ---
+    if (path.endsWith('packages.html')) {
+        const packagesList = document.getElementById('packages-list');
+        const activePlanContainer = document.getElementById('active-plan-container');
+        const activePlanDetails = document.getElementById('active-plan-details');
+        const plans = getDB('plans');
+        
+        // Check for active plan
+        if (user.plan) {
+            const activePlan = plans.find(p => p.id === user.plan);
+            if (activePlan) {
+                activePlanDetails.innerText = `${activePlan.name} - ৳${activePlan.reward}/day`;
+                activePlanContainer.style.display = 'block';
+            }
+        }
+
+        // Load plans
+        packagesList.innerHTML = '';
+        plans.forEach(plan => {
+            const card = document.createElement('div');
+            card.className = 'package-card';
+            card.innerHTML = `
+                <h3>${plan.name}</h3>
+                <div class="package-price">৳${plan.price}</div>
+                <ul class="package-details">
+                    <li><span data-lang-key="dailyReward">Daily Reward</span>: ৳${plan.reward}</li>
+                    <li><span data-lang-key="validity">Validity</span>: ${plan.validity} <span data-lang-key="days">Days</span></li>
+                </ul>
+                <button class="btn btn-buy" data-plan-id="${plan.id}" ${user.plan ? 'disabled' : ''}>
+                    ${user.plan ? (user.plan === plan.id ? 'Active' : 'Locked') : 'Buy Now'}
+                </button>
+            `;
+            packagesList.appendChild(card);
+        });
+        
+        // Add lang keys
+        setLanguage(localStorage.getItem('lang') || 'en');
+
+        // Handle Buy Plan
+        packagesList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('btn-buy') && !e.target.disabled) {
+                const planId = parseInt(e.target.dataset.planId);
+                const plan = plans.find(p => p.id === planId);
+                
+                if (user.plan) {
+                    alert("You can only have one active plan.");
+                    return;
+                }
+                
+                if (user.balance < plan.price) {
+                    alert("Insufficient balance. Please deposit first.");
+                    return;
+                }
+                
+                if (confirm(`Are you sure you want to buy ${plan.name} for ৳${plan.price}?`)) {
+                    user.balance -= plan.price;
+                    user.plan = plan.id;
+                    const validity = plan.validity;
+                    let endDate = new Date();
+                    endDate.setDate(endDate.getDate() + validity);
+                    user.planEndDate = endDate.toISOString();
+
+                    // Check for referral bonus on first plan purchase
+                    const settings = getDB('settings');
+                    if (user.referredBy) {
+                        const users = getDB('users');
+                        const referrer = users.find(u => u.phone === user.referredBy);
+                        if (referrer) {
+                            const bonus = settings.referralPlanBonus || 50;
+                            // Give bonus to new user
+                            user.balance += bonus;
+                            alert(`You received a ৳${bonus} referral bonus!`);
+                            
+                            // Give bonus to referrer
+                            referrer.referralBalance += bonus;
+                            const referrerIndex = users.findIndex(u => u.id === referrer.id);
+                            users[referrerIndex] = referrer;
+                            setDB('users', users);
+                        }
+                        // Remove referredBy after awarding bonus to prevent re-triggering
+                        user.referredBy = null; 
+                    }
+                    
+                    saveCurrentUser(user);
+                    alert("Plan purchased successfully!");
+                    window.location.reload();
+                }
+            }
+        });
+    }
+
+    // --- Tasks Page (tasks.html) ---
+    if (path.endsWith('tasks.html')) {
+        const noPlanMessage = document.getElementById('no-plan-message');
+        const tasksContainer = document.getElementById('tasks-container');
+        const dailyTasksList = document.getElementById('daily-tasks-list');
+        const todayEarningsEl = document.getElementById('today-earnings');
+        const tasksCompletedEl = document.getElementById('tasks-completed');
+        const tasksTotalEl = document.getElementById('tasks-total');
+        const allTasksBonusEl = document.getElementById('all-tasks-bonus');
+
+        if (!user.plan) {
+            noPlanMessage.style.display = 'block';
+            tasksContainer.style.display = 'none';
+        } else {
+            noPlanMessage.style.display = 'none';
+            tasksContainer.style.display = 'block';
+            loadTasks();
+        }
+
+        function loadTasks() {
+            const plans = getDB('plans');
+            const userPlan = plans.find(p => p.id === user.plan);
+            if (!userPlan) return;
+
+            const tasks = getDB('tasks');
+            const settings = getDB('settings');
+            
+            // Get user's task status from their own object (to make it user-specific)
+            let userTasks = user.tasks || {};
+            const today = new Date().toDateString();
+
+            // Initialize today's task status if not present
+            if (!userTasks[today]) {
+                userTasks[today] = {
+                    earnings: 0,
+                    completedCount: 0,
+                    tasks: { 1: false }, // Task ID 1 is the daily plan task
+                    bonusAwarded: false
+                };
+            }
+            
+            const todayStatus = userTasks[today];
+            const dailyTaskReward = userPlan.reward;
+            const isDailyTaskDone = todayStatus.tasks[1];
+
+            dailyTasksList.innerHTML = `
+                <div class="card task-card">
+                    <div class="task-info">
+                        <h4 data-lang-key="planDetails">${userPlan.name} - Daily Task</h4>
+                        <p data-lang-key="dailyReward">Reward: ৳${dailyTaskReward.toFixed(2)}</p>
+                    </div>
+                    <button class="btn btn-secondary btn-complete-task" data-task-id="1" ${isDailyTaskDone ? 'disabled' : ''}>
+                        <span data-lang-key="${isDailyTaskDone ? 'completed' : 'complete'}">${isDailyTaskDone ? 'Completed' : 'Complete'}</span>
+                    </button>
+                </div>
+            `;
+            
+            // Update summary
+            todayEarningsEl.innerText = todayStatus.earnings.toFixed(2);
+            tasksCompletedEl.innerText = todayStatus.completedCount;
+            tasksTotalEl.innerText = 1; // Only 1 daily task for now
+            if (todayStatus.bonusAwarded) {
+                allTasksBonusEl.style.display = 'block';
+            }
+            
+            // Add lang keys
+            setLanguage(localStorage.getItem('lang') || 'en');
+        }
+
+        dailyTasksList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('btn-complete-task') && !e.target.disabled) {
+                const taskId = e.target.dataset.taskId;
+                
+                const plans = getDB('plans');
+                const userPlan = plans.find(p => p.id === user.plan);
+                const reward = userPlan.reward;
+                
+                user.balance += reward;
+                
+                // Update user task status
+                const today = new Date().toDateString();
+                if (!user.tasks) user.tasks = {};
+                if (!user.tasks[today]) {
+                    user.tasks[today] = { earnings: 0, completedCount: 0, tasks: {}, bonusAwarded: false };
+                }
+                
+                const todayStatus = user.tasks[today];
+                todayStatus.earnings += reward;
+                todayStatus.tasks[taskId] = true;
+                todayStatus.completedCount++;
+                
+                // Check for all tasks bonus
+                const settings = getDB('settings');
+                if (todayStatus.completedCount === 1 && !todayStatus.bonusAwarded) { // 1 = total tasks
+                    const bonus = settings.allTasksBonus || 20;
+                    user.balance += bonus;
+                    todayStatus.earnings += bonus;
+                    todayStatus.bonusAwarded = true;
+                    alert(`All tasks completed! You earned a bonus of ৳${bonus}!`);
+                    allTasksBonusEl.style.display = 'block';
+                }
+
+                saveCurrentUser(user);
+                
+                // Update UI
+                e.target.disabled = true;
+                e.target.innerHTML = `<span data-lang-key="completed">Completed</span>`;
+                todayEarningsEl.innerText = todayStatus.earnings.toFixed(2);
+                tasksCompletedEl.innerText = todayStatus.completedCount;
+                
+                alert(`Task completed! You earned ৳${reward}.`);
+            }
+        });
+    }
+
+    // --- Transactions Page (transactions.html) ---
+    if (path.endsWith('transactions.html')) {
+        const list = document.getElementById('all-transactions-list');
+        const deposits = getDB('deposits').filter(d => d.userPhone === user.phone);
+        const withdraws = getDB('withdraws').filter(w => w.userPhone === user.phone);
+
+        const all = [
+            ...deposits.map(d => ({...d, type: 'deposit'})),
+            ...withdraws.map(w => ({...w, type: 'withdraw'}))
+        ];
+        
+        all.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        list.innerHTML = '';
+        if (all.length === 0) {
+            list.innerHTML = '<li class="no-data" data-lang-key="noTransactions">No transactions found.</li>';
+        } else {
+            all.forEach(t => {
+                const li = document.createElement('li');
+                const isDeposit = t.type === 'deposit';
+                
+                li.innerHTML = `
+                    <div class="transaction-details">
+                        <strong>${isDeposit ? 'Deposit' : 'Withdraw'} - ${t.method}</strong>
+                        <small>${new Date(t.date).toLocaleString()}</small>
+                    </div>
+                    <div class="transaction-amount">
+                        <span class="amount-${isDeposit ? 'deposit' : 'withdraw'}">
+                            ${isDeposit ? '+' : '-'}৳${t.amount.toFixed(2)}
+                        </span>
+                        <span class="status status-${t.status.toLowerCase()}">${t.status}</span>
+                    </div>
+                `;
+                list.appendChild(li);
+            });
+        }
+        // Add lang keys
+        setLanguage(localStorage.getItem('lang') || 'en');
+    }
+
+    // --- Profile Page (profile.html) ---
+    if (path.endsWith('profile.html')) {
+        const deposits = getDB('deposits')
+            .filter(d => d.userPhone === user.phone && d.status === 'Approved')
+            .reduce((sum, d) => sum + d.amount, 0);
+            
+        const withdraws = getDB('withdraws')
+            .filter(w => w.userPhone === user.phone && w.status === 'Approved')
+            .reduce((sum, w) => sum + w.amount, 0);
+            
+        const plans = getDB('plans');
+        const activePlan = user.plan ? plans.find(p => p.id === user.plan).name : 'None';
+
+        document.getElementById('profile-total-deposit').innerText = `৳${deposits.toFixed(2)}`;
+        document.getElementById('profile-total-withdraw').innerText = `৳${withdraws.toFixed(2)}`;
+        document.getElementById('profile-active-plan').innerText = activePlan;
+        document.getElementById('profile-referral-balance').innerText = `৳${user.referralBalance.toFixed(2)}`;
+
+        // Logout
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            if (confirm("Are you sure you want to log out?")) {
+                localStorage.removeItem('currentUser');
+                window.location.href = 'login.html';
+            }
+        });
+        
+        // Copy Referral
+        document.getElementById('copy-referral-btn').addEventListener('click', () => {
+            navigator.clipboard.writeText(user.referralCode).then(() => {
+                alert('Referral code copied to clipboard!');
+            });
+        });
+    }
+
+});

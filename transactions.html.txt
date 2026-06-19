@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transactions - RAZA CASH</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header simple-header">
+            <a href="index.html" class="back-icon"><i class="fas fa-arrow-left"></i></a>
+            <h1 data-lang-key="transaction">Transaction</h1>
+            <a href="profile.html" class="header-icon"><i class="fas fa-user-circle"></i></a>
+        </header>
+
+        <div class="main-content">
+            <div class="card">
+                <h3 data-lang-key="allTransactions">All Transactions</h3>
+                <ul id="all-transactions-list" class="transaction-list">
+                    <li class="no-data" data-lang-key="noTransactions">No transactions found.</li>
+                </ul>
+            </div>
+        </div>
+
+        <nav class="bottom-nav">
+            <a href="index.html" class="nav-item">
+                <i class="fas fa-home"></i>
+                <span data-lang-key="home">Home</span>
+            </a>
+            <a href="packages.html" class="nav-item">
+                <i class="fas fa-box"></i>
+                <span data-lang-key="plans">Plans</span>
+            </a>
+            <a href="tasks.html" class="nav-item">
+                <i class="fas fa-tasks"></i>
+                <span data-lang-key="task">Task</span>
+            </a>
+            <a href="profile.html" class="nav-item">
+                <i class="fas fa-user"></i>
+                <span data-lang-key="profile">Profile</span>
+            </a>
+        </nav>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
